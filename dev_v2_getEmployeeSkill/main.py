@@ -1,0 +1,104 @@
+"""
+Google Cloud Function that fetches rows from the EmployeeSkill table.
+"""
+
+import json
+from typing import Any, Dict, List
+
+import psycopg2
+from flask import Request
+from psycopg2.extras import RealDictCursor
+
+import db_utils
+
+
+def fetch_employee_skill() -> List[Dict[str, Any]]:
+    """Fetch employee skills from the database."""
+    sql = 'SELECT * FROM "EmployeeSkill" ORDER BY id'
+    with db_utils.get_db_connection() as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(sql)
+        return cur.fetchall()
+
+
+def dev_v2_get_employee_skill(request: Request):
+    """
+    Cloud Function entry point for getting employee skills.
+    """
+    # Handle CORS preflight
+    if request.method == 'OPTIONS':
+        headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Max-Age': '3600'
+        }
+        return ('', 204, headers)
+    
+    # Set CORS headers
+    headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+    }
+    
+    try:
+        # Fetch data from database
+        data = fetch_employee_skill()
+        
+        # Convert to JSON-serializable format
+        results = []
+        for row in data:
+            result = dict(row)
+            # Convert datetime objects to strings
+            for key, value in result.items():
+                if hasattr(value, 'isoformat'):
+                    result[key] = value.isoformat()
+            results.append(result)
+        
+        response_data = {"count": len(results), "results": results}
+        return (json.dumps(response_data), 200, headers)
+        
+    except psycopg2.Error as exc:
+        error_response = {"error": str(exc)}
+        return (json.dumps(error_response), 500, headers)
+    except Exception as exc:
+        error_response = {"error": str(exc)}
+        return (json.dumps(error_response), 500, headers)
+
+
+"""
+Deployment command (Production):
+
+gcloud functions deploy get_employee_skill \
+  --runtime python310 \
+  --trigger-http \
+  --entry-point get_employee_skill \
+  --service-account training-project-419308@appspot.gserviceaccount.com \
+  --allow-unauthenticated \
+  --no-gen2 \
+  --region asia-south1 \
+  --set-env-vars ENV=production
+"""
+
+"""
+Deployment command (Development):
+
+gcloud functions deploy dev_v2_get_employee_skill \
+  --runtime python310 \
+  --trigger-http \
+  --entry-point dev_v2_get_employee_skill \
+  --service-account training-project-419308@appspot.gserviceaccount.com \
+  --allow-unauthenticated \
+  --no-gen2 \
+  --region asia-south1 \
+  --set-env-vars ENV=development
+"""
+
+"""
+Local testing command:
+
+Then run:
+    functions-framework --target=dev_v2_get_employee_skill --source main.py --debug --port=8080
+
+Test URL: http://127.0.0.1:8080/
+"""
+
