@@ -113,6 +113,6 @@ Local testing command:
 Then run:
     functions-framework --target=dev_v2_get_master_skill --source main.py --debug --port=8080
 
-Test URL: http://127.0.0.1:8080/?search=python
+Test URL: http://127.0.0.1:8080/
 """
 
