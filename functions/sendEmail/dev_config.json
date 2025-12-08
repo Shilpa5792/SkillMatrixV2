@@ -1,0 +1,6 @@
+{
+  "SMTP_SERVER": "smtp.outlook.com",
+  "SMTP_PORT": "587",
+  "SMTP_EMAIL": "gennotification@jktech.com",
+  "SMTP_PASS": "Jktech@312"
+}

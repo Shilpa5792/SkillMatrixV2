@@ -23,3 +23,13 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# 🔒 Security – Block service account keys
+key.json
+frontend/key.json
+*.pem
+*.p12
+*.pfx
+*.key
+*.creds
+*.json.secret

@@ -1,0 +1,10 @@
+pandas==2.0.3
+numpy==1.24.4
+openpyxl==3.1.2
+google-cloud-storage==2.11.0
+requests==2.31.0
+flask==2.3.3
+functions-framework==3.5.0
+SQLAlchemy==2.0.23
+psycopg2-binary==2.9.9
+pg8000==1.29.8

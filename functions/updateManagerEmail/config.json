@@ -1,0 +1,7 @@
+{
+  "DB_HOST": "34.93.56.175",
+  "DB_USER": "postgres",
+  "DB_PASS": "Skillmatrix@123",
+  "DB_NAME": "Skill_Matrix",
+  "DB_PORT": 5432
+}

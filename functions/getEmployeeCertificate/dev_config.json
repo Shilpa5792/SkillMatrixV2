@@ -1,0 +1,9 @@
+{
+  "DB_HOST": "34.47.204.166",
+  "DB_USER": "postgres",
+  "DB_PASS": "Skillmatrix@123",
+  "DB_NAME": "Skill_Matrix",
+  "DB_PORT": 5432,
+  "BASE_URL": "https://asia-south1-training-project-419308.cloudfunctions.net/dev_",
+  "TO_EMAIL": "Sushant.kumar@jktech.com"
+}
