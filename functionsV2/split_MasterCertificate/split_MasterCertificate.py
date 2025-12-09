@@ -229,7 +229,7 @@ def verify_migration(cursor):
     for row in cursor.fetchall():
         print_now(f"  {row[0]} | {row[1]} → {row[2]} ({row[3]})")
     
-    print_now("\n✅ Migration completed successfully!")
+    print_now("\n Migration completed successfully!")
 
 def main():
     """Main function"""
@@ -243,7 +243,7 @@ def main():
         conn = get_db_connection()
         print_now("✓ Connected successfully\n")
     except Exception as e:
-        print_now(f"❌ Connection failed: {e}")
+        print_now(f" Connection failed: {e}")
         return
     
     cursor = conn.cursor()
@@ -254,7 +254,7 @@ def main():
         
         # Check if migration already done
         if 'MasterCertificateProvider' in existing_tables and 'ProviderCertificateMapping' in existing_tables:
-            print_now("\n⚠️  Migration appears to be already completed!")
+            print_now("\n  Migration appears to be already completed!")
             response = input("Do you want to recreate? (yes/no): ")
             if response.lower() not in ['yes', 'y']:
                 print_now("Cancelled.")
@@ -262,7 +262,7 @@ def main():
         
         # Check if old MasterCertificate has the right columns
         if 'certprovider' not in columns:
-            print_now("\n❌ ERROR: MasterCertificate doesn't have 'certprovider' column!")
+            print_now("\n ERROR: MasterCertificate doesn't have 'certprovider' column!")
             print_now("It looks like the table was already modified.")
             print_now("Please restore from backup or check the database state.")
             return
@@ -284,7 +284,7 @@ def main():
         conn.commit()
         
         # Step 5: Drop old table
-        response = input("\n⚠️  Drop the old table (MasterCertificate_OLD)? (yes/no): ")
+        response = input("\n  Drop the old table (MasterCertificate_OLD)? (yes/no): ")
         if response.lower() in ['yes', 'y']:
             drop_old_table(cursor)
             conn.commit()
@@ -293,7 +293,7 @@ def main():
         verify_migration(cursor)
         
     except Exception as e:
-        print_now(f"\n❌ ERROR: {e}")
+        print_now(f"\n ERROR: {e}")
         print_now("\nRolling back changes...")
         conn.rollback()
         import traceback

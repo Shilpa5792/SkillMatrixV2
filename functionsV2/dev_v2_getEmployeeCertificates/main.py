@@ -1,5 +1,7 @@
 """
-Google Cloud Function that fetches rows from the EmployeeCertificates table.
+Google Cloud Function that fetches employee certificates.
+Returns data in EmployeeCertificates table format.
+The certificate_id references ProviderCertificateMapping.id, enabling future mapping to certificates and providers.
 """
 
 import json
@@ -13,8 +15,12 @@ import db_utils
 
 
 def fetch_employee_certificate() -> List[Dict[str, Any]]:
-    """Fetch employee certificates from the database."""
+    """
+    Fetch employee certificates from the database.
+    Returns plain table data - certificate_id can be used to map to ProviderCertificateMapping later.
+    """
     sql = 'SELECT * FROM "EmployeeCertificates" ORDER BY id'
+    
     with db_utils.get_db_connection() as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(sql)
         return cur.fetchall()
@@ -23,6 +29,12 @@ def fetch_employee_certificate() -> List[Dict[str, Any]]:
 def dev_v2_get_employee_certificate(request: Request):
     """
     Cloud Function entry point for getting employee certificates.
+    
+    Query Parameters:
+    - employee_id: Filter by specific employee ID (optional)
+    
+    Returns:
+    EmployeeCertificates table data where certificate_id references ProviderCertificateMapping.id
     """
     # Handle CORS preflight
     if request.method == 'OPTIONS':
@@ -44,6 +56,11 @@ def dev_v2_get_employee_certificate(request: Request):
         # Fetch data from database
         data = fetch_employee_certificate()
         
+        # Optional: Filter by employee_id if provided
+        employee_id = request.args.get('employee_id')
+        if employee_id:
+            data = [row for row in data if row.get('employee_id') == int(employee_id)]
+        
         # Convert to JSON-serializable format
         results = []
         for row in data:
@@ -58,10 +75,16 @@ def dev_v2_get_employee_certificate(request: Request):
         return (json.dumps(response_data), 200, headers)
         
     except psycopg2.Error as exc:
-        error_response = {"error": str(exc)}
+        error_response = {
+            "error": "Database error",
+            "details": str(exc)
+        }
         return (json.dumps(error_response), 500, headers)
     except Exception as exc:
-        error_response = {"error": str(exc)}
+        error_response = {
+            "error": "Internal server error",
+            "details": str(exc)
+        }
         return (json.dumps(error_response), 500, headers)
 
 
@@ -99,6 +122,28 @@ Local testing command:
 Then run:
     functions-framework --target=dev_v2_get_employee_certificate --source main.py --debug --port=8080
 
-Test URL: http://127.0.0.1:8080/
-"""
+Test URLs:
+    All employee certificates: http://127.0.0.1:8080/
+    Specific employee: http://127.0.0.1:8080/?employee_id=4
 
+Response format (EmployeeCertificates table structure):
+{
+  "count": 2,
+  "results": [
+    {
+      "id": 11,
+      "employee_id": 4,
+      "certificate_id": 1,  // References ProviderCertificateMapping.id
+      "issued_date": "2024-01-15T00:00:00",
+      "expiry_date": "2027-01-15T00:00:00",
+      "created_at": "2025-12-09T10:11:05.820548",
+      "updated_at": "2025-12-09T10:11:05.820548"
+    }
+  ]
+}
+
+Future mapping in application:
+- Use certificate_id to JOIN with ProviderCertificateMapping
+- ProviderCertificateMapping has provider_id and certificate_id (master)
+- This allows mapping to MasterCertificate and MasterCertificateProvider
+"""
