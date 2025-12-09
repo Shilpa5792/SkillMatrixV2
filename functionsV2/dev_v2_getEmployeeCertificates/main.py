@@ -1,7 +1,6 @@
 """
 Google Cloud Function that fetches employee certificates.
-Returns data in EmployeeCertificates table format.
-The certificate_id references ProviderCertificateMapping.id, enabling future mapping to certificates and providers.
+Uses JOINs to validate mapping relationships but returns only EmployeeCertificates table structure.
 """
 
 import json
@@ -16,10 +15,24 @@ import db_utils
 
 def fetch_employee_certificate() -> List[Dict[str, Any]]:
     """
-    Fetch employee certificates from the database.
-    Returns plain table data - certificate_id can be used to map to ProviderCertificateMapping later.
+    Fetch employee certificates with full JOIN to validate mappings,
+    but return only EmployeeCertificates table columns.
     """
-    sql = 'SELECT * FROM "EmployeeCertificates" ORDER BY id'
+    sql = """
+        SELECT 
+            ec.id,
+            ec.employee_id,
+            ec.certificate_id,
+            ec.issued_date,
+            ec.expiry_date,
+            ec.created_at,
+            ec.updated_at
+        FROM "EmployeeCertificates" ec
+        JOIN "ProviderCertificateMapping" pcm ON ec.certificate_id::integer = pcm.id
+        JOIN "MasterCertificate" mc ON pcm.certificate_id = mc.id
+        JOIN "MasterCertificateProvider" mcp ON pcm.provider_id = mcp.id
+        ORDER BY ec.id
+    """
     
     with db_utils.get_db_connection() as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(sql)

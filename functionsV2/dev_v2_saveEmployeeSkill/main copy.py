@@ -13,7 +13,7 @@ from psycopg2 import sql
 from psycopg2.extras import RealDictCursor
 from flask import Request
 
-import db_utils
+import  db_utils
 
 logger = logging.getLogger(__name__)
 
